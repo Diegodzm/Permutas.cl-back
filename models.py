@@ -33,7 +33,6 @@ class Publication(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value= db.Column(db.Integer, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    product_description = db.Column(db.String, db.ForeignKey('product.product_info'))
     state = db.Column(db.Boolean, nullable=False)
     offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'))
     wishes = db.relationship('Wishlist', backref='publication') 
