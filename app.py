@@ -1,6 +1,6 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User
+from models import db, User, Category
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
@@ -16,7 +16,6 @@ Migrate(app,db)
 CORS(app)
 bcrypt = Bcrypt(app)
 jwt = JWTManager(app)
-
 
 @app.route('/')
 def home():
@@ -61,7 +60,6 @@ def user_register():
 
 @app.route('/user/logingoogle',methods=['POST'])
 def user_login_google():
-    print(request.get_json())
     email = request.json.get('email')
     if email is not None:
         user= User.query.filter_by(email=email).first()
@@ -74,6 +72,7 @@ def user_login_google():
                 }),200
         else: 
             user=User()
+           
             username= request.json.get('given_name')
             firstname= request.json.get('name')
             lastname= request.json.get('family_name')
@@ -87,18 +86,18 @@ def user_login_google():
             user.firstname= firstname
             user.lastname= lastname
             user.username= username
-         
         
-
             db.session.add(user)
             db.session.commit()
+            access_token= create_access_token(identity=email)
             return jsonify({
-                "msg":"user created"
-            })
+                "msg":"user created",
+                "access_token": access_token,
+            }),200
 
     else:
         return jsonify({
-            "msg": "email doesnt exist"
+            "msg": "email needed"
         }),400
 
 @app.route('/user/login',methods=['POST'])
@@ -137,12 +136,11 @@ def user_loguin():
 def get_users():
     users= User.query.all()
     users= list(map(lambda user:user.serialize(),users))
-
     return jsonify(users),200
 
 
         
 
 
-if __name__  == '__main__':
+if __name__  == '__main__': 
     app.run(host='localhost',port=5000,debug=True)

@@ -41,9 +41,10 @@ class Publication(db.Model):
 class Category(db.Model):
     __tablename__= 'category'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    products= db.relationship('Product', backref='category')
-
+    name = db.Column(db.String(200))
+    product_id= db.Column(db.Integer, db.ForeignKey('product.id'))
+    
+    
 class Product(db.Model):
     __tablename__= 'product'
     id = db.Column(db.Integer, primary_key=True)
@@ -53,9 +54,9 @@ class Product(db.Model):
     brand = db.Column(db.String(200), nullable=False)
     state = db.Column(db.Boolean, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    category_id= db.Column(db.Integer, db.ForeignKey('category.id'))
     offers= db.relationship('Offer', backref='product')
     publications=db.relationship('Publication', backref='product')
+    categories=db.relationship('Category', backref='product')
 
 class Offer(db.Model):
     __tablename__= 'offer'
