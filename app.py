@@ -1,6 +1,6 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User, Category
+from models import db, User, Product
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
@@ -68,7 +68,8 @@ def user_login_google():
             return jsonify({
                     "user":user.serialize(),
                     "access_token": access_token,
-                    "msg":"user login google"
+                    "msg":"user login google",
+                    "user_id": user.id,
                 }),200
         else: 
             user=User()
@@ -93,6 +94,7 @@ def user_login_google():
             return jsonify({
                 "msg":"user created",
                 "access_token": access_token,
+                "user_id": user.id,
             }),200
 
     else:
@@ -100,9 +102,29 @@ def user_login_google():
             "msg": "email needed"
         }),400
 
+@app.route('/products/user/<int:user>',methods=['GET'])
+def get_user_products(user):
+    products= Product.query.filter_by(user_id=user).all()
+    return jsonify(products)
+
+
+@app.route('/products',methods=['GET'])
+def get_allProducts():
+    products= Product.query.all()   
+
+    return jsonify(products) ,200
+
+@app.route('/category/products/<int:id>',methods=['GET'])
+def get_Products_by_category(id):
+    products= Product.query.filter_by(category_id=id).all()
+
+    return jsonify(products) ,200
+
+
 @app.route('/user/login',methods=['POST'])
 def user_loguin():
     print(request.get_json())
+    user=User()
     email = request.json.get('email')
     password = request.json.get('password')
     if email is not None:
@@ -114,6 +136,7 @@ def user_loguin():
                 return jsonify({
                     "user":user.serialize(),
                     "access_token": access_token,
+                    "user_id": user.id,
                     "msg":"user login"
                 }),200
             else:
@@ -125,21 +148,58 @@ def user_loguin():
                 "msg":"user not found"
             }),400
 
-    else:
+    else:   
         return jsonify({
             "msg": "email doesnt exist"
         }),400
 
+@app.route('/products/upload', methods=['POST'])
+def productUpload():
+    product= Product()
+    product_category= request.json.get('category_id')
+    product_userid= request.json.get('user_id')
+    product.state=True
+    product_name = request.json.get('name')
+    product_price= request.json.get('price')
+    product_photo_url= request.json.get('photo')
+    product_info= request.json.get('product_info')
+    product_brand= request.json.get('brand')
+    
+    if product_name and product_brand and product_price and product_info and product_photo_url is not None:
+        product.name= product_name
+        product.price= product_price
+        product.photo= product_photo_url
+        product.product_info= product_info
+        product.brand= product_brand
+        product.user_id= product_userid
+        product.category_id= product_category
+         
+        db.session.add(product)
+        db.session.commit()
+        return jsonify({"msg": "product uploaded"
+        }),200
 
-@app.route('/users', methods=['GET'])
-@jwt_required()
-def get_users():
-    users= User.query.all()
-    users= list(map(lambda user:user.serialize(),users))
-    return jsonify(users),200
+    else:
+        return jsonify({
+            "msg":"field missing"
+        })
+
+    
+
+
+   
 
 
         
+@app.route('/users', methods=['GET'])
+@jwt_required()
+def protected_view():
+    response="user logged in    "
+
+    return jsonify(response),200
+
+
+
 
 
 if __name__  == '__main__': 
