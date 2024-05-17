@@ -1,6 +1,6 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User, Category
+from models import db, User, Product
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
@@ -138,9 +138,46 @@ def get_users():
     users= list(map(lambda user:user.serialize(),users))
     return jsonify(users),200
 
+#Post a Product. 
 
-        
+@app.route('/products/upload', methods=['POST'])
+def upload_product():
+    #user_id = request.json.get('user_id')
+    #print("Datos recibidos del cliente:", request.json)
+    #if user_id is not None and isinstance(user_id, (int, float)):
+        #error_message = "El campo 'user_id' es obligatorio y debe ser un número válido."
+        #return jsonify({'error': error_message}), 400
+
+    name = request.json.get('name')
+    price = request.json.get('price')
+    photo = request.json.get('photo')
+    product_info = request.json.get('product_info')
+    brand = request.json.get('brand')
+    user_id = request.json.get ('user_id')
+
+    if not (name and price and photo and product_info and brand):
+        return jsonify({"msg": "Missing required fields"}), 400
+
+    product = Product(
+        name=name,
+        price=price,
+        photo=photo,
+        product_info=product_info,
+        brand=brand,
+        user_id=user_id
+    )
+
+    db.session.add(product)
+    db.session.commit()
+
+    return jsonify({"msg": "Product uploaded successfully"}), 201
+@app.route ('/products/published', methods=['GET'])
+
+def published_products(): 
+    published = Product.query.all()
+    return jsonify (published)
 
 
-if __name__  == '__main__': 
-    app.run(host='localhost',port=5000,debug=True)
+
+if __name__  == '__main__':
+    app.run(host='localhost',port=5000)

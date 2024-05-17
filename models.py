@@ -37,26 +37,21 @@ class Publication(db.Model):
     offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'))
     wishes = db.relationship('Wishlist', backref='publication') 
 
-
-class Category(db.Model):
-    __tablename__= 'category'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200))
-    product_id= db.Column(db.Integer, db.ForeignKey('product.id'))
     
     
 class Product(db.Model):
-    __tablename__= 'product'
+    __tablename__ = 'product'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(200), nullable=False)
+    price = db.Column(db.Integer, nullable=False)  
     photo = db.Column(db.String(200), nullable=False)
     product_info = db.Column(db.String(400), nullable=False)
     brand = db.Column(db.String(200), nullable=False)
-    state = db.Column(db.Boolean, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    offers= db.relationship('Offer', backref='product')
-    publications=db.relationship('Publication', backref='product')
-    categories=db.relationship('Category', backref='product')
+    state = db.Column(db.Boolean, nullable=False, default=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    offers = db.relationship('Offer', backref='product')
+    publications = db.relationship('Publication', backref='product')
+    
 
 class Offer(db.Model):
     __tablename__= 'offer'

@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 0f436950f0ac
+Revision ID: ffd1afcabe00
 Revises: 
-Create Date: 2024-05-06 17:21:09.786886
+Create Date: 2024-05-10 04:34:19.266851
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0f436950f0ac'
+revision = 'ffd1afcabe00'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -31,19 +31,13 @@ def upgrade():
     op.create_table('product',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=200), nullable=False),
+    sa.Column('price', sa.Integer(), nullable=False),
     sa.Column('photo', sa.String(length=200), nullable=False),
     sa.Column('product_info', sa.String(length=400), nullable=False),
     sa.Column('brand', sa.String(length=200), nullable=False),
     sa.Column('state', sa.Boolean(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('category',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('name', sa.String(length=200), nullable=True),
-    sa.Column('product_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['product_id'], ['product.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('offer',
@@ -84,7 +78,6 @@ def downgrade():
     op.drop_table('wishlist')
     op.drop_table('publication')
     op.drop_table('offer')
-    op.drop_table('category')
     op.drop_table('product')
     op.drop_table('user')
     # ### end Alembic commands ###
