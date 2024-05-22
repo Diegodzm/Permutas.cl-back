@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy;
+from dataclasses import dataclass;
 
 db= SQLAlchemy()
 
@@ -37,21 +38,21 @@ class Publication(db.Model):
     offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'))
     wishes = db.relationship('Wishlist', backref='publication') 
 
-    
-    
+@dataclass
 class Product(db.Model):
     __tablename__ = 'product'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(200), nullable=False)
-    price = db.Column(db.Integer, nullable=False)  
-    photo = db.Column(db.String(200), nullable=False)
-    product_info = db.Column(db.String(400), nullable=False)
-    brand = db.Column(db.String(200), nullable=False)
-    state = db.Column(db.Boolean, nullable=False, default=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    offers = db.relationship('Offer', backref='product')
-    publications = db.relationship('Publication', backref='product')
-    
+    name:str = db.Column(db.String(200), nullable=False)
+    photo:str = db.Column(db.String(200),nullable=False)
+    product_info:str = db.Column(db.String(400),nullable=False )
+    brand:str = db.Column(db.String(200),nullable=False)
+    state:bool = db.Column(db.Boolean, nullable=False)
+    category_id:int= db.Column(db.Integer, nullable=False)
+    price:int =db.Column(db.Integer, nullable=False)
+    user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
+    offers= db.relationship('Offer', backref='product')
+    publications=db.relationship('Publication', backref='product')
+
 
 class Offer(db.Model):
     __tablename__= 'offer'
@@ -64,3 +65,13 @@ class Offer(db.Model):
     state = db.Column(db.Boolean, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
     offers= db.relationship('Publication', backref='offer')
+
+class Exchange(db.Model):
+    __tablename__= 'exchange'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
+    selected_product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    state = db.Column(db.Boolean, nullable=False)
+    offer = db.relationship('Offer', backref='exchange')
+    selected_product = db.relationship('Product', backref='exchange')
