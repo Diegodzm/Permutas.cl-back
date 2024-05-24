@@ -27,16 +27,7 @@ class Wishlist(db.Model):
     __tablename__ = 'wishlist'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    publication_id = db.Column(db.Integer, db.ForeignKey('publication.id'))
-
-class Publication(db.Model):
-    __tablename__= 'publication'
-    id = db.Column(db.Integer, primary_key=True)
-    value= db.Column(db.Integer, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    state = db.Column(db.Boolean, nullable=False)
-    offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'))
-    wishes = db.relationship('Wishlist', backref='publication') 
 
 @dataclass
 class Product(db.Model):
@@ -51,7 +42,7 @@ class Product(db.Model):
     price:int =db.Column(db.Integer, nullable=False)
     user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
     offers= db.relationship('Offer', backref='product')
-    publications=db.relationship('Publication', backref='product')
+ 
 
 
 class Offer(db.Model):
@@ -59,9 +50,5 @@ class Offer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     amount = db.Column(db.Integer, nullable=False)
-    offer_product_value = db.Column(db.Integer, nullable=False)
-    photo = db.Column(db.String(200), nullable=False)
-    product_description = db.Column(db.String(200), nullable=False)
-    state = db.Column(db.Boolean, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    offers= db.relationship('Publication', backref='offer')
+

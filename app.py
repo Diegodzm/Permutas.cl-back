@@ -1,6 +1,6 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User, Product
+from models import db, User, Product, Wishlist,Offer
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
@@ -70,6 +70,7 @@ def user_login_google():
                     "access_token": access_token,
                     "msg":"user login google",
                     "user_id": user.id,
+                    "username":user.username
                 }),200
         else: 
             user=User()
@@ -107,6 +108,45 @@ def get_user_products(user):
     products= Product.query.filter_by(user_id=user).all()
     return jsonify(products)
 
+@app.route('/products/wishlist/<int:user>',methods=['POST'])
+def post_wishlist(user):
+    wishlist= Wishlist()
+    product_id= request.json.get('product_id')
+    user_id= User.query.filter_by(user_id=user).first
+    wishlist.product_id= product_id
+    wishlist.user_id= user_id
+
+    db.session.add(wishlist)
+    db.session.commit()
+
+@app.route('/offerupload',methods=['POST'])
+def offerupload():
+    offer=Offer()
+    name= request.json.get('name')
+    userid= request.json.get('user_id')
+    amount_offer= request.json.get('amount')
+    product_info= request.json.get('product_info')
+    photo= request.json.get('photo')
+    product_id_search_userid = Product.query.filter_by(user_id=userid).all()
+    brand = request.json.get('brand')
+
+    for x in product_id_search_userid:
+        if brand == x.brand:
+            if name == x.name:
+                if product_info== x.product_info:
+                    if photo ==x.photo:
+                        product_id= x.id
+                        offer.user_id= userid
+                        offer.amount= amount_offer
+                        offer.product_id= product_id
+                        db.session.add(offer)
+                        db.session.commit()
+
+                        
+                        return jsonify({"msg":x})
+                
+                    
+
 
 @app.route('/products',methods=['GET'])
 def get_allProducts():
@@ -137,7 +177,8 @@ def user_loguin():
                     "user":user.serialize(),
                     "access_token": access_token,
                     "user_id": user.id,
-                    "msg":"user login"
+                    "msg":"user login",
+                    "username":user.username
                 }),200
             else:
                 return jsonify({
