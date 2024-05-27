@@ -22,12 +22,12 @@ class User(db.Model):
             "email": self.email,
             # do not serialize the password, its a security breach
         }
-
+@dataclass
 class Wishlist(db.Model):
     __tablename__ = 'wishlist'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
+    product_id:int = db.Column(db.Integer, db.ForeignKey('product.id'))
 
 @dataclass
 class Product(db.Model):

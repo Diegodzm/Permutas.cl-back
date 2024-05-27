@@ -111,13 +111,41 @@ def get_user_products(user):
 @app.route('/products/wishlist/<int:user>',methods=['POST'])
 def post_wishlist(user):
     wishlist= Wishlist()
-    product_id= request.json.get('product_id')
-    user_id= User.query.filter_by(user_id=user).first
-    wishlist.product_id= product_id
-    wishlist.user_id= user_id
+    name= request.json.get('name')
+    userid= request.json.get('user_id')
+    product_info= request.json.get('product_info')
+    photo= request.json.get('photo')
+    product_id_search_userid = Product.query.filter_by(user_id=userid).all()
+    brand = request.json.get('brand')
+    for x in product_id_search_userid:
+        if brand == x.brand:
+            if name == x.name:
+                if product_info== x.product_info:
+                    if photo ==x.photo:
+                        product_id= x.id
+                        wishlist.user_id= user
+                        wishlist.product_id= product_id
+                        db.session.add(wishlist)
+                        db.session.commit()
+                        return jsonify({"msg":"agregado a wishlist"})
 
-    db.session.add(wishlist)
-    db.session.commit()
+
+   
+@app.route('/wishlist/<int:user>', methods=['GET'])
+def getWishlist(user):
+    wished_info= Wishlist.query.filter_by(user_id=user).all()
+    wishlist=[]
+    for x in wished_info:
+        product= Product.query.filter_by(id=x.product_id).first()
+        wishlist.append(product)
+
+        
+    
+    
+    return jsonify(wishlist)
+
+
+
 
 @app.route('/offerupload',methods=['POST'])
 def offerupload():
@@ -243,4 +271,4 @@ def protected_view():
 
 
 if __name__  == '__main__': 
-    app.run(host='localhost',port=3001,debug=True)
+    app.run(host='localhost',port=5000,debug=True)
