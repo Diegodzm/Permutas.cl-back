@@ -3,31 +3,27 @@ from dataclasses import dataclass;
 
 db= SQLAlchemy()
 
+@dataclass
 class User(db.Model):
     __tablename__= 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), unique=True)
-    password = db.Column(db.String(80), nullable=False)
-    firstname= db.Column(db.String(80), nullable=False)
-    lastname= db.Column(db.String(80),nullable=False)
-    username= db.Column(db.String(80),  nullable=False)
+    id:int = db.Column(db.Integer, primary_key=True)
+    email:str = db.Column(db.String(120), unique=True)
+    password:str = db.Column(db.String(80), nullable=False)
+    firstname:str = db.Column(db.String(80), nullable=False)
+    lastname:str = db.Column(db.String(80),nullable=False)
+    username:str = db.Column(db.String(80),  nullable=False)
     wishes = db.relationship('Wishlist', backref='user')
     products= db.relationship('Product', backref='user')
     
-    def __repr__(self):
-        return f'<User {self.email}>'
-    def serialize(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
-        }
+    
+
 @dataclass
 class Wishlist(db.Model):
     __tablename__ = 'wishlist'
     id = db.Column(db.Integer, primary_key=True)
     user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
     product_id:int = db.Column(db.Integer, db.ForeignKey('product.id'))
+
 
 @dataclass
 class Product(db.Model):
@@ -44,11 +40,13 @@ class Product(db.Model):
     offers= db.relationship('Offer', backref='product')
  
 
-
+@dataclass
 class Offer(db.Model):
     __tablename__= 'offer'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    amount = db.Column(db.Integer, nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
+    user_id:int = db.Column(db.Integer, nullable=False)
+    amount:int = db.Column(db.Integer, nullable=False)
+    user_interested:int = db.Column(db.Integer, nullable=False)
+    product_id:int = db.Column(db.Integer, db.ForeignKey('product.id'))
+    product_offered:int = db.Column(db.Integer, nullable=False)
 
