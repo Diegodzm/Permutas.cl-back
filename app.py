@@ -113,41 +113,41 @@ def get_user_products(user):
 @app.route('/offerupload',methods=['POST'])
 def offerupload():
     offer=Offer()
-    name= request.json.get('name')
     userid= request.json.get('user_id')
     amount_offer= request.json.get('amount')
-    userinterested= request.json.get('user_interested')
     product_info= request.json.get('product_info')
-    productinterested_id = request.json.get('productinterested_id')
     photo= request.json.get('photo')
-    product_id_search_userid = Product.query.filter_by(user_id=userid).all()
     brand = request.json.get('brand')
-    productinterested_id_search = Product.query.filter_by(user_id=productinterested_id).all()
+    userinterested= request.json.get('user_interested')
+    photointerested= request.json.get('photo_interested')
+    brandinterested = request.json.get('brand_interested')
+    infointerested = request.json.get('info_interested')
 
-    for z in productinterested_id_search:
-        if brand == z.brand:
-            if name == z.name:
-                if product_info== z.product_info:
-                    if photo ==z.photo:
-                        offer.product_offered = z.id
+    product_id_search_by_userid_interested= Product.query.filter_by(user_id=userinterested).all()
+    product_id_search_by_userid = Product.query.filter_by(user_id=userid).all()
+    
+    for z in product_id_search_by_userid_interested:
+        if brandinterested == z.brand:
+            if infointerested== z.product_info:
+                if photointerested ==z.photo:
+                    offer.product_offered=z.id
+                    offer.user_interested=userinterested
+                    
 
-
-    for x in product_id_search_userid:
+    for x in product_id_search_by_userid:
         if brand == x.brand:
-            if name == x.name:
-                if product_info== x.product_info:
-                    if photo ==x.photo:
-                        product_id= x.id
-                        offer.user_id= userid
-                        offer.amount= amount_offer
-                        offer.product_id= product_id
-                        offer.user_interested = userinterested
+            if product_info== x.product_info:
+                if photo ==x.photo:
+                    product_id= x.id
+                    offer.user_id= userid
+                    offer.amount= amount_offer
+                    offer.product_id= product_id
 
-                        db.session.add(offer)
-                        db.session.commit()
+                    db.session.add(offer)
+                    db.session.commit()
 
                         
-                        return jsonify({"msg":x})
+                return jsonify({"msg":x})
                 
                     
 
@@ -279,25 +279,66 @@ def correo(user):
 @app.route('/notifications/<int:user>', methods=['GET'])
 def notificacion(user):
     offerbyuser= Offer.query.filter_by(user_id=user).all()
-
     return jsonify(offerbyuser)
 
 
-@app.route('/usernotifications/<int:user>', methods=['GET'])
-def usernotificacion(user):
-    usernotification= User.query.filter_by(id=user).first()
+@app.route('/offertrade',methods=['POST'])
+def getTrade():
+    tradeinfo= request.get_json()
+    trade=[]
 
-    return jsonify({'username':usernotification.username, 
-                    'email':usernotification.email})
+    for x in tradeinfo:
+        user= User.query.filter_by(id=x['user_id']).first()
+        user_interested= User.query.filter_by(id=x['user_interested']).first()
+        product= Product.query.filter_by(id=x['product_id']).first()
+        product_offered= Product.query.filter_by(id=x['product_offered']).first()
+        tradeobject={
+            "user":{
+                "email":user.email,
+                "firstname":user.firstname,
+                "lastname":user.lastname,
+                "username":user.username,
+            },
+           
+            "user_interested":{
+                "email":user_interested.email,
+                "firstname":user_interested.firstname,
+                "lastname":user_interested.lastname,
+                "username":user_interested.username,
+
+            },
+            "product":{
+                "product_info":product.product_info,
+                "price":product.price,
+                "photo":product.photo,
+                "name":product.name,
+                "brand":product.brand,
+            },
+            "product_offered":{
+                "product_info":product_offered.product_info,
+                "price":product_offered.price,
+                "photo":product_offered.photo,
+                "name":product_offered.name,
+                "brand":product_offered.brand,
+
+            },
+
+        }
+  
+        trade.append(tradeobject)
 
 
-@app.route('/userinterestedproduct/<int:product>', methods=['GET'])
-def userinterestedproduct(product):
-    userinterestedproduct= Product.query.filter_by(id=product).first()
+    print(trade)
+      
+    return jsonify(
+        trade
+    )
+   
 
-    return jsonify({'product_info':userinterestedproduct.product_info, 
-                    'photo':userinterestedproduct.photo})
+
+
+    
 
 
 if __name__  == '__main__': 
-    app.run(host='localhost',port=3001,debug=True)
+    app.run(host='localhost',port=5000,debug=True)

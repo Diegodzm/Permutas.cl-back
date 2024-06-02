@@ -15,6 +15,20 @@ class User(db.Model):
     wishes = db.relationship('Wishlist', backref='user')
     products= db.relationship('Product', backref='user')
     
+    def to_dictionary(self):
+        return {
+            "id": self.id,
+            "firstname":self.firstname,
+            "lastname":self.lastname,
+            "username":self.username,
+            "email":self.email,
+
+            
+
+
+
+        }
+    
     
 
 @dataclass
@@ -38,6 +52,21 @@ class Product(db.Model):
     price:int =db.Column(db.Integer, nullable=False)
     user_id:int = db.Column(db.Integer, db.ForeignKey('user.id'))
     offers= db.relationship('Offer', backref='product')
+
+    def to_dictionary(self):
+        return {
+            "id": self.id,
+            "product_name":self.name,
+            "photo":self.photo,
+            "product_info":self.product_info,
+            "brand":self.brand,
+            "price":self.price,
+            "user_id":self.user_id,
+            
+
+
+        }
+    
  
 
 @dataclass
