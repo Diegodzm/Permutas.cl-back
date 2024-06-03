@@ -1,6 +1,6 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User, Product, Offer, Exchange 
+from models import db, User, Product, Offer
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
@@ -70,6 +70,7 @@ def user_login_google():
                     "access_token": access_token,
                     "msg":"user login google",
                     "user_id": user.id,
+                    "username": user.username
                 }),200
         else: 
             user=User()
@@ -137,7 +138,8 @@ def user_loguin():
                     "user":user.serialize(),
                     "access_token": access_token,
                     "user_id": user.id,
-                    "msg":"user login"
+                    "msg":"user login",
+                    "username": user.username
                 }),200
             else:
                 return jsonify({
@@ -202,30 +204,24 @@ def protected_view():
 
     return jsonify(response),200
 
-@app.route('/exchange/<int:offer_id>/<int:selected_product_id>', methods=['POST'])
 
-def create_exchange(offer_id, selected_product_id):
-    offer = Offer.query.get_or_404(offer_id)
-    selected_product = Product.query.get_or_404(selected_product_id)
+@app.route ('/products/oferta', methods = ['POST'])
+def create_offer ():
+    offer = Offer()
 
-    if offer.user_id == selected_product.user_id:
-        return jsonify({"message": "No puedes intercambiar un producto contigo mismo."}), 400
+    user_id_offer = request.json.get ('user_id')
+    amount_offer = request.json.get ('amount')
+    state_offer = True
+    product_id_offer = request.json.get ('product_id')
 
-    if offer.state == False:
-        return jsonify({"message": "Esta oferta ya ha sido intercambiada."}), 400
+    offer.user_id = user_id_offer
+    offer.amount = amount_offer 
+    offer.state = state_offer 
+    offer.product_id = product_id_offer 
 
-    if selected_product.state == False:
-        return jsonify({"message": "Este producto ya ha sido intercambiado."}), 400
-
-    exchange = Exchange(user_id=current_user.id, offer_id=offer_id, selected_product_id=selected_product_id)
-    db.session.add(exchange)
+    db.session.add(offer)
     db.session.commit()
 
-    offer.state = False
-    selected_product.state = False
-    db.session.commit()
-
-    return jsonify({"message": "El intercambio ha sido realizado exitosamente."}), 200
 
 
 

@@ -59,19 +59,8 @@ class Offer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=False)
     amount = db.Column(db.Integer, nullable=False)
-    offer_product_value = db.Column(db.Integer, nullable=False)
-    photo = db.Column(db.String(200), nullable=False)
-    product_description = db.Column(db.String(200), nullable=False)
     state = db.Column(db.Boolean, nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    offers= db.relationship('Publication', backref='offer')
+    
 
-class Exchange(db.Model):
-    __tablename__= 'exchange'
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, nullable=False)
-    offer_id = db.Column(db.Integer, db.ForeignKey('offer.id'), nullable=False)
-    selected_product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-    state = db.Column(db.Boolean, nullable=False)
-    offer = db.relationship('Offer', backref='exchange')
-    selected_product = db.relationship('Product', backref='exchange')
+
