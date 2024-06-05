@@ -37,9 +37,7 @@ def user_register():
             firstname= request.json.get('firstname')
             lastname= request.json.get('lastname')
             password= request.json.get('password')
-            
             password_hash= bcrypt.generate_password_hash(password)
-
             user.password =password_hash
             user.email= email
             user.firstname= firstname
@@ -163,7 +161,8 @@ def offerupload():
                     db.session.commit()
 
                         
-                return jsonify({"msg":x})
+                return jsonify({"msg":x,
+                "offer id ":offer.id})
                 
                     
 
@@ -357,6 +356,7 @@ def correo(user):
 @app.route('/notifications/<int:user>', methods=['GET'])
 def notificacion(user):
     offerbyuser= Offer.query.filter_by(user_id=user).all()
+
     return jsonify(offerbyuser)
 
 
@@ -388,13 +388,13 @@ def getTrade():
             "product":{
                 "product_info":product.product_info,
                 "price":product.price,
-                "photo":product.photo,
+                "photo":product.photo, 
                 "name":product.name,
                 "brand":product.brand,
             },
             "product_offered":{
                 "product_info":product_offered.product_info,
-                "price":product_offered.price,
+                "amount":x['amount'],
                 "photo":product_offered.photo,
                 "name":product_offered.name,
                 "brand":product_offered.brand,
@@ -405,8 +405,6 @@ def getTrade():
   
         trade.append(tradeobject)
 
-
-    print(trade)
       
     return jsonify(
         trade
@@ -428,6 +426,19 @@ def delete_product(product_id):
 
     
 
+@app.route('/deloffer',methods=['PUT'])
+def deloffer():     
+    offerinfo= request.get_json()
+    offeruserid= Offer.query.filter_by(user_id=offerinfo['user_id']).all()
+    for x in offeruserid:
+        if offerinfo['user_interested']==x.user_interested:
+            if offerinfo['product_id']==x.product_id:
+                if offerinfo['product_offered']==x.product_offered:
+                    if offerinfo['amount']==x.amount:
+                        db.session.delete(x)
+                        db.session.commit()
+    newoffer= Offer.query.all()
+    return jsonify(newoffer)
 
 
 
