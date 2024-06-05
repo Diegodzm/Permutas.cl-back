@@ -1,10 +1,11 @@
 import os
 from flask import Flask,request,jsonify
-from models import db, User, Product, Offer
+from models import db, User, Product, Offer, Wishlist
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (JWTManager,create_access_token,get_jwt_identity, jwt_required, current_user)
+
 
 BASEDIR= os.path.abspath(os.path.dirname(__file__))
 
@@ -66,11 +67,11 @@ def user_login_google():
         if user is not None:
             access_token= create_access_token(identity=email)
             return jsonify({
-                    "user":user.serialize(),
+                    "user":user.firstname,
                     "access_token": access_token,
                     "msg":"user login google",
                     "user_id": user.id,
-                    "username": user.username
+                    "username":user.username
                 }),200
         else: 
             user=User()
@@ -103,10 +104,68 @@ def user_login_google():
             "msg": "email needed"
         }),400
 
-@app.route('/products/user/<int:user>',methods=['GET'])
+@app.route('/products/user/<int:user>', methods=['GET'])
 def get_user_products(user):
-    products= Product.query.filter_by(user_id=user).all()
-    return jsonify(products)
+    products = Product.query.filter_by(user_id=user).all()
+
+    products_data = []
+    for product in products:
+        product_data = {
+            'id': product.id,
+            'name': product.name,
+            'photo': product.photo,
+            'product_info': product.product_info,
+            'brand': product.brand,
+            'state': product.state,
+            'category_id': product.category_id,
+            'price': product.price,
+            'user_id': product.user_id
+        }
+        products_data.append(product_data)
+    return jsonify(products_data)
+
+
+
+@app.route('/offerupload',methods=['POST'])
+def offerupload():
+    offer=Offer()
+    userid= request.json.get('user_id')
+    amount_offer= request.json.get('amount')
+    product_info= request.json.get('product_info')
+    photo= request.json.get('photo')
+    brand = request.json.get('brand')
+    userinterested= request.json.get('user_interested')
+    photointerested= request.json.get('photo_interested')
+    brandinterested = request.json.get('brand_interested')
+    infointerested = request.json.get('info_interested')
+
+    product_id_search_by_userid_interested= Product.query.filter_by(user_id=userinterested).all()
+    product_id_search_by_userid = Product.query.filter_by(user_id=userid).all()
+    
+    for z in product_id_search_by_userid_interested:
+        if brandinterested == z.brand:
+            if infointerested== z.product_info:
+                if photointerested ==z.photo:
+                    offer.product_offered=z.id
+                    offer.user_interested=userinterested
+                    
+
+    for x in product_id_search_by_userid:
+        if brand == x.brand:
+            if product_info== x.product_info:
+                if photo ==x.photo:
+                    product_id= x.id
+                    offer.user_id= userid
+                    offer.amount= amount_offer
+                    offer.product_id= product_id
+
+                    db.session.add(offer)
+                    db.session.commit()
+
+                        
+                return jsonify({"msg":x})
+                
+                    
 
 
 @app.route('/products',methods=['GET'])
@@ -124,7 +183,6 @@ def get_Products_by_category(id):
 
 @app.route('/user/login',methods=['POST'])
 def user_loguin():
-    print(request.get_json())
     user=User()
     email = request.json.get('email')
     password = request.json.get('password')
@@ -135,11 +193,11 @@ def user_loguin():
             if is_valid:
                 access_token= create_access_token(identity=email)
                 return jsonify({
-                    "user":user.serialize(),
+                    "user":user.firstname,
                     "access_token": access_token,
                     "user_id": user.id,
                     "msg":"user login",
-                    "username": user.username
+                    "username":user.username,
                 }),200
             else:
                 return jsonify({
@@ -176,7 +234,6 @@ def productUpload():
         product.brand= product_brand
         product.user_id= product_userid
         product.category_id= product_category
-         
         db.session.add(product)
         db.session.commit()
         return jsonify({"msg": "product uploaded"
@@ -188,6 +245,58 @@ def productUpload():
         })
 
 
+@app.route('/products/wishlist/<int:user>',methods=['POST'])
+def post_wishlist(user):
+    wishlist= Wishlist()
+    name= request.json.get('name')
+    userid= request.json.get('user_id')
+    product_info= request.json.get('product_info')
+    photo= request.json.get('photo')
+    product_id_search_userid = Product.query.filter_by(user_id=userid).all()
+    brand = request.json.get('brand')
+    for x in product_id_search_userid:
+        if brand == x.brand:
+            if name == x.name:
+                if product_info== x.product_info:
+                    if photo ==x.photo:
+                        product_id= x.id
+                        wishlist.user_id= user
+                        wishlist.product_id= product_id
+                        db.session.add(wishlist)
+                        db.session.commit()
+                        return jsonify({"msg":"agregado a wishlist"})
+                    
+@app.route('/products/wishlist/<int:wishlist_product_id>/<int:user>', methods=['DELETE'])
+def remove_from_wishlist(wishlist_product_id,user):
+    wishlist_item = Wishlist.query.filter_by(id = wishlist_product_id).first()
+    
+   
+    db.session.delete(wishlist_item)
+    db.session.commit()
+    wishlist_return = []
+    remain_wishlist = Wishlist.query.filter_by(user_id=user).all()
+    for x in remain_wishlist : 
+        product_wish_remain = Product.query.filter_by(id = x.product_id).first()
+        product_wish = {
+            "id": x.id,
+            "name": product_wish_remain.name,
+            "photo": product_wish_remain.photo,
+            "product_info": product_wish_remain.product_info,
+            "price": product_wish_remain.price,
+            "product_id": product_wish_remain.id
+    }
+        wishlist_return.append(product_wish)
+    return jsonify(wishlist_return), 200
+
+
+
+   
+
+    
+    
+
+
+
 
 @app.route ('/products/published', methods=['GET'])
 
@@ -196,6 +305,23 @@ def published_products():
     return jsonify (published)
 
 
+   
+@app.route('/wishlist/<int:user>', methods=['GET'])
+def getWishlist(user):
+    wished_info= Wishlist.query.filter_by(user_id=user).all()
+    wishlist=[]
+    for x in wished_info:
+        product= Product.query.filter_by(id=x.product_id).first()
+        product_wish =  {
+            "id": x.id,
+            "name": product.name,
+            "photo": product.photo,
+            "product_info": product.product_info,
+            "price": product.price,
+            "product_id" : product.id
+        }
+        wishlist.append(product_wish)
+    return wishlist
         
 @app.route('/users', methods=['GET'])
 @jwt_required()
@@ -221,7 +347,86 @@ def create_offer ():
 
     db.session.add(offer)
     db.session.commit()
+@app.route('/Email/<int:user>', methods=['GET'])
+def correo(user):
+     userof= User.query.filter_by(id=user).first()
 
+     return jsonify({'email':userof.email})
+
+
+@app.route('/notifications/<int:user>', methods=['GET'])
+def notificacion(user):
+    offerbyuser= Offer.query.filter_by(user_id=user).all()
+    return jsonify(offerbyuser)
+
+
+@app.route('/offertrade',methods=['POST'])
+def getTrade():
+    tradeinfo= request.get_json()
+    trade=[]
+
+    for x in tradeinfo:
+        user= User.query.filter_by(id=x['user_id']).first()
+        user_interested= User.query.filter_by(id=x['user_interested']).first()
+        product= Product.query.filter_by(id=x['product_id']).first()
+        product_offered= Product.query.filter_by(id=x['product_offered']).first()
+        tradeobject={
+            "user":{
+                "email":user.email,
+                "firstname":user.firstname,
+                "lastname":user.lastname,
+                "username":user.username,
+            },
+           
+            "user_interested":{
+                "email":user_interested.email,
+                "firstname":user_interested.firstname,
+                "lastname":user_interested.lastname,
+                "username":user_interested.username,
+
+            },
+            "product":{
+                "product_info":product.product_info,
+                "price":product.price,
+                "photo":product.photo,
+                "name":product.name,
+                "brand":product.brand,
+            },
+            "product_offered":{
+                "product_info":product_offered.product_info,
+                "price":product_offered.price,
+                "photo":product_offered.photo,
+                "name":product_offered.name,
+                "brand":product_offered.brand,
+
+            },
+
+        }
+  
+        trade.append(tradeobject)
+
+
+    print(trade)
+      
+    return jsonify(
+        trade
+    )
+
+@app.route('/products/delete/<int:product_id>',methods=['DELETE'])
+def delete_product(product_id):
+    product = Product.query.get(product_id)
+    if product:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({"msg": "Producto eliminado correctamente"}), 200
+    else:
+        return jsonify({"msg": "Producto no encontrado"}), 404
+
+   
+
+
+
+    
 
 
 
